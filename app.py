@@ -1,12 +1,10 @@
 import io
 import os
-import csv
 import yaml
 import math
 import locale
 import hashlib
 import requests
-import cryptography
 from flask import Flask, render_template, request, redirect, url_for, session, make_response, Response, g
 from fpdf import FPDF
 from flask_sqlalchemy import SQLAlchemy
@@ -14,7 +12,7 @@ from datetime import datetime
 from requests_oauthlib import OAuth1Session
 from oauth_wiki import get_username
 from sqlalchemy_utils import StringEncryptedType
-from PyPDF2 import PdfFileReader, PdfFileWriter
+import PyPDF2
 
 from email.message import EmailMessage
 import ssl
@@ -540,7 +538,7 @@ def generate_certificate():
             pdf.set_x(50)
             y_production = pdf.get_y()
             pdf.cell(w=20, h=10, border=0, ln=0, align='L', txt='Produção:')
-            y_logos = pdf.get_y()
+            _y_logos = pdf.get_y()
             pdf.image(os.path.join(app.static_folder, 'neuromat.png'), x=78, y=y_production+0.6, h=8.5)
 
             #######################################################################################################
