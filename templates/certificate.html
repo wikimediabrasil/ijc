@@ -50,12 +50,6 @@
                                 <tr>
                                     <td style="width:0"><a target="_blank" href="https://pt.wikiversity.org/wiki/User_talk:{{ user.username }}">{{ user.username }}</a></td>
                                     <td style="width:0">{{ user.full_name }}</td>
-                                    {% set aulas = ["https://pt.wikiversity.org/wiki/Introdução_ao_Jornalismo_Científico/Metodologia_e_Filosofia_da_Ciência/Atividade/",
-                                    "https://outreachdashboard.wmflabs.org/courses/CEPID_NeuroMat/Introdu%C3%A7%C3%A3o_ao_Jornalismo_Cient%C3%ADfico/students/articles/",
-                                    "https://pt.wikiversity.org/wiki/Introdução_ao_Jornalismo_Científico/Ética_da_Ciência/Atividade/",
-                                    "https://pt.wikiversity.org/wiki/Introdução_ao_Jornalismo_Científico/Temas_Centrais_da_Ciência_Contemporânea/Atividade/",
-                                    "https://pt.wikiversity.org/wiki/Introdução_ao_Jornalismo_Científico/Modos_de_Organização_e_Financiamento_dos_Sistemas_de_Pesquisa,_no_Brasil_e_no_Exterior/Atividade/",
-                                    "https://pt.wikiversity.org/wiki/Introdução_ao_Jornalismo_Científico/Mídias,_Linguagens_e_Prática_do_Jornalismo_Científico/Atividade/"] %}
                                     {% if coordinator %}
                                         {% for module_activity in user.can_download_certificate.split(";") %}
                                             <td style="text-align: center; background-color: {% if module_activity == "F" %}#ffc0c0{% elif module_activity == "NP" %}#b0b0b0{% else %}#90ff90{% endif %}">

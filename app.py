@@ -33,6 +33,14 @@ db = SQLAlchemy(app)
 
 key = app.config["ENCRYPTION_KEY"]
 
+MODULES = [
+    "https://pt.wikiversity.org/wiki/Introdução_ao_Jornalismo_Científico/Metodologia_e_Filosofia_da_Ciência/Atividade/",
+    "https://outreachdashboard.wmflabs.org/courses/CEPID_NeuroMat/Introdu%C3%A7%C3%A3o_ao_Jornalismo_Cient%C3%ADfico/students/articles/",
+    "https://pt.wikiversity.org/wiki/Introdução_ao_Jornalismo_Científico/Ética_da_Ciência/Atividade/",
+    "https://pt.wikiversity.org/wiki/Introdução_ao_Jornalismo_Científico/Temas_Centrais_da_Ciência_Contemporânea/Atividade/",
+    "https://pt.wikiversity.org/wiki/Introdução_ao_Jornalismo_Científico/Modos_de_Organização_e_Financiamento_dos_Sistemas_de_Pesquisa,_no_Brasil_e_no_Exterior/Atividade/",
+    "https://pt.wikiversity.org/wiki/Introdução_ao_Jornalismo_Científico/Mídias,_Linguagens_e_Prática_do_Jornalismo_Científico/Atividade/",
+]
 
 # Create database (db) model
 class Users(db.Model):
@@ -649,6 +657,7 @@ def certificate():
         if username in app.config['COORDINATORS_USERNAMES']:
             users = Users.query.all()
             return render_template('certificate.html',
+                                   aulas=MODULES,
                                    username=username,
                                    users=users,
                                    coordinator=True)
@@ -660,6 +669,7 @@ def certificate():
             else:
                 return redirect(url_for('subscription'))
             return render_template('certificate.html',
+                                   aulas=MODULES,
                                    username=username,
                                    users=users,
                                    can_download_certificate=can_download_certificate)
@@ -676,6 +686,7 @@ def certificate_only_requested():
         if request.method == 'GET':
             users = Users.query.filter_by(solicited_certificate=True)
             return render_template('certificate.html',
+                                   aulas=MODULES,
                                    username=username,
                                    users=users,
                                    coordinator=True)
