@@ -655,7 +655,7 @@ def certificate():
 
     if request.method == 'GET':
         if username in app.config['COORDINATORS_USERNAMES']:
-            users = Users.query.all()
+            users = Users.query.all().order_by(Users.date_created.desc())
             return render_template('certificate.html',
                                    aulas=MODULES,
                                    username=username,
