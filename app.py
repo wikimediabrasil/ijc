@@ -701,7 +701,7 @@ def certificate_module_timestamps(user_username):
             "rvslots": "*",
             "rvprop": "timestamp|user",
             "titles": "|".join(titles),
-        },
+        }
         result = requests.get("https://pt.wikiversity.org/w/api.php", params=params).json()
         timestamps = []
         api_pages = result["query"]["pages"].values()
