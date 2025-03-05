@@ -1,12 +1,10 @@
 import io
 import os
-import csv
 import yaml
 import math
 import locale
 import hashlib
 import requests
-import cryptography
 from flask import Flask, render_template, request, redirect, url_for, session, make_response, Response, g
 from fpdf import FPDF
 from flask_sqlalchemy import SQLAlchemy
@@ -14,7 +12,7 @@ from datetime import datetime
 from requests_oauthlib import OAuth1Session
 from oauth_wiki import get_username
 from sqlalchemy_utils import StringEncryptedType
-from PyPDF2 import PdfFileReader, PdfFileWriter
+import PyPDF2
 
 from email.message import EmailMessage
 import ssl
@@ -35,6 +33,14 @@ db = SQLAlchemy(app)
 
 key = app.config["ENCRYPTION_KEY"]
 
+MODULES = [
+    "https://pt.wikiversity.org/wiki/Introdução_ao_Jornalismo_Científico/Metodologia_e_Filosofia_da_Ciência/Atividade/",
+    "https://outreachdashboard.wmflabs.org/courses/CEPID_NeuroMat/Introdu%C3%A7%C3%A3o_ao_Jornalismo_Cient%C3%ADfico/students/articles/",
+    "https://pt.wikiversity.org/wiki/Introdução_ao_Jornalismo_Científico/Ética_da_Ciência/Atividade/",
+    "https://pt.wikiversity.org/wiki/Introdução_ao_Jornalismo_Científico/Temas_Centrais_da_Ciência_Contemporânea/Atividade/",
+    "https://pt.wikiversity.org/wiki/Introdução_ao_Jornalismo_Científico/Modos_de_Organização_e_Financiamento_dos_Sistemas_de_Pesquisa,_no_Brasil_e_no_Exterior/Atividade/",
+    "https://pt.wikiversity.org/wiki/Introdução_ao_Jornalismo_Científico/Mídias,_Linguagens_e_Prática_do_Jornalismo_Científico/Atividade/",
+]
 
 # Create database (db) model
 class Users(db.Model):
@@ -540,7 +546,7 @@ def generate_certificate():
             pdf.set_x(50)
             y_production = pdf.get_y()
             pdf.cell(w=20, h=10, border=0, ln=0, align='L', txt='Produção:')
-            y_logos = pdf.get_y()
+            _y_logos = pdf.get_y()
             pdf.image(os.path.join(app.static_folder, 'neuromat.png'), x=78, y=y_production+0.6, h=8.5)
 
             #######################################################################################################
@@ -649,8 +655,9 @@ def certificate():
 
     if request.method == 'GET':
         if username in app.config['COORDINATORS_USERNAMES']:
-            users = Users.query.all()
+            users = Users.query.order_by(Users.date_created.desc())
             return render_template('certificate.html',
+                                   aulas=MODULES,
                                    username=username,
                                    users=users,
                                    coordinator=True)
@@ -662,12 +669,58 @@ def certificate():
             else:
                 return redirect(url_for('subscription'))
             return render_template('certificate.html',
+                                   aulas=MODULES,
                                    username=username,
                                    users=users,
                                    can_download_certificate=can_download_certificate)
     else:
         return redirect(url_for('home'))
 
+@app.route('/certificate/module_timestamps/<user_username>', methods=['GET'])
+def certificate_module_timestamps(user_username):
+    username = get_username()
+
+    if username in app.config['COORDINATORS_USERNAMES']:
+        users = Users.query.filter_by(username=user_username)
+    else:
+        users = Users.query.filter_by(username=username)
+
+    if users.first():
+        INDEX_TO_SKIP = 1
+        user = users.first()
+        titles = []
+        modules_to_check = list(MODULES)
+        modules_to_check.pop(INDEX_TO_SKIP) # remove outreach dashboard
+        for m in modules_to_check:
+            title_wiki = m.split("https://pt.wikiversity.org/wiki/")[-1]
+            titles.append(f"{title_wiki}{user.username}")
+        params={
+            "format": "json",
+            "action": "query",
+            "prop": "revisions",
+            "rvslots": "*",
+            "rvprop": "timestamp|user",
+            "titles": "|".join(titles),
+        }
+        result = requests.get("https://pt.wikiversity.org/w/api.php", params=params).json()
+        timestamps = []
+        api_pages = result["query"]["pages"].values()
+        for original_title in titles:
+            use_title = original_title
+            for normalized in result["query"].get("normalized", []):
+                if original_title == normalized["from"]:
+                    use_title = normalized["to"]
+            found = False
+            for api_page in api_pages:
+                if use_title == api_page.get("title"):
+                    timestamps.append(api_page.get("revisions", [{}])[-1].get("timestamp", None))
+                    found = True
+            if not found:
+                timestamps.append(None)
+        timestamps.insert(INDEX_TO_SKIP, None)
+        return render_template('certificate_module_timestamps.html', user=user, timestamps=timestamps)
+    else:
+        return render_template('certificate_module_timestamps.html', user=None, timestamps=[])
 
 # Gerenciar atividades
 @app.route('/certificate/requested', methods=['GET'])
@@ -676,8 +729,9 @@ def certificate_only_requested():
 
     if username in app.config['COORDINATORS_USERNAMES']:
         if request.method == 'GET':
-            users = Users.query.filter_by(solicited_certificate=True)
+            users = Users.query.filter_by(solicited_certificate=True).order_by(Users.date_created.desc())
             return render_template('certificate.html',
+                                   aulas=MODULES,
                                    username=username,
                                    users=users,
                                    coordinator=True)
