@@ -51,7 +51,7 @@
                                 <tr>
                                     <td style="width:0"><a target="_blank" href="https://pt.wikiversity.org/wiki/User_talk:{{ user.username }}">{{ user.username }}</a></td>
                                     <td style="width:0">{{ user.full_name }}</td>
-                                    <td style="width:0">{{ user.date_created }}</td>
+                                    <td style="width:0">{{ user.date_created.date() }}</td>
                                     {% if coordinator %}
                                         {% for module_activity in user.can_download_certificate.split(";") %}
                                             <td style="text-align: center; background-color: {% if module_activity == "F" %}#ffc0c0{% elif module_activity == "NP" %}#b0b0b0{% else %}#90ff90{% endif %}">
