@@ -715,7 +715,7 @@ def certificate_module_timestamps(user_username):
                     timestamps.append(api_page.get("revisions", [{}])[-1].get("timestamp", None))
                     continue
             timestamps.append(None)
-        timestamps.insert(1, None)
+        timestamps.insert(INDEX_TO_SKIP, None)
         return render_template('certificate_module_timestamps.html', user=user, timestamps=timestamps)
     else:
         return render_template('certificate_module_timestamps.html', user=None, timestamps=[])
