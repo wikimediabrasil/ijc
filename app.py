@@ -693,7 +693,7 @@ def certificate_module_timestamps(user_username):
         modules_to_check.pop(INDEX_TO_SKIP) # remove outreach dashboard
         for m in modules_to_check:
             title_wiki = m.split("https://pt.wikiversity.org/wiki/")[-1]
-            titles.append(f"{title_wiki}/{user.username}")
+            titles.append(f"{title_wiki}{user.username}")
         params={
             "format": "json",
             "action": "query",
@@ -710,11 +710,13 @@ def certificate_module_timestamps(user_username):
             for normalized in result["query"].get("normalized", []):
                 if original_title == normalized["from"]:
                     use_title = normalized["to"]
+            found = False
             for api_page in api_pages:
                 if use_title == api_page.get("title"):
                     timestamps.append(api_page.get("revisions", [{}])[-1].get("timestamp", None))
-                    continue
-            timestamps.append(None)
+                    found = True
+            if not found:
+                timestamps.append(None)
         timestamps.insert(INDEX_TO_SKIP, None)
         return render_template('certificate_module_timestamps.html', user=user, timestamps=timestamps)
     else:
