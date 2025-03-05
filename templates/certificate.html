@@ -55,7 +55,7 @@
                                     <td style="width:0">{{ user.full_name }}</td>
                                     {% if coordinator %}
                                     <td style="width:0">{{ user.date_created.date() }}
-                                    <button hx-get="/certificate/module_timestamps/{{user.username}}" hx-swap="outerHTML" type="button" style="padding:5px; background-color: #0069a1; margin:0; width: 80%; font-size: smaller">Timestamps</button>
+                                    <button hx-get="/certificate/module_timestamps/{{user.username}}" hx-swap="outerHTML" type="button" style="padding:5px; background-color: #0069a1; margin:0; width: 100%; font-size: smaller">Timestamps</button>
                                     </td>
                                     {% endif %}
                                     {% if coordinator %}
