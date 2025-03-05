@@ -51,7 +51,9 @@
                                 <tr>
                                     <td style="width:0"><a target="_blank" href="https://pt.wikiversity.org/wiki/User_talk:{{ user.username }}">{{ user.username }}</a></td>
                                     <td style="width:0">{{ user.full_name }}</td>
-                                    <td style="width:0">{{ user.date_created.date() }}</td>
+                                    <td style="width:0">{{ user.date_created.date() }}
+                                    <button hx-get="/certificate/module_timestamps/{{user.username}}" type="button" style="padding:5px; background-color: #0069a1; margin:0; width: 100%">Carregar timestamps</button>
+                                    </td>
                                     {% if coordinator %}
                                         {% for module_activity in user.can_download_certificate.split(";") %}
                                             <td style="text-align: center; background-color: {% if module_activity == "F" %}#ffc0c0{% elif module_activity == "NP" %}#b0b0b0{% else %}#90ff90{% endif %}">
@@ -72,6 +74,7 @@
                                                             </div>
                                                         </div>
                                                     {% endif %}
+                                                    <div id="{{user.id}}-module-timestamp-{{loop.index}}"></div>
                                                 </div>
                                             </td>
                                         {% endfor %}

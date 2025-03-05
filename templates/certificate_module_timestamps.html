@@ -1,0 +1,5 @@
+{% for timestamp in timestamps %}
+<div id="{{user.id}}-module-timestamp-{{loop.index}}" hx-swap-oob="true" class="w3-row" style="margin: 0; padding: 0">
+  {% if timestamp %}{{ timestamp }}{% endif %}
+</div>
+{% endfor %}

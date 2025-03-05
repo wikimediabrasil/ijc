@@ -676,6 +676,49 @@ def certificate():
     else:
         return redirect(url_for('home'))
 
+@app.route('/certificate/module_timestamps/<user_username>', methods=['GET'])
+def certificate_module_timestamps(user_username):
+    username = get_username()
+
+    if username in app.config['COORDINATORS_USERNAMES']:
+        users = Users.query.filter_by(username=user_username)
+    else:
+        users = Users.query.filter_by(username=username)
+
+    if users.first():
+        INDEX_TO_SKIP = 1
+        user = users.first()
+        titles = []
+        modules_to_check = list(MODULES)
+        modules_to_check.pop(INDEX_TO_SKIP) # remove outreach dashboard
+        for m in modules_to_check:
+            title_wiki = m.split("https://pt.wikiversity.org/wiki/")[-1]
+            titles.append(f"{title_wiki}/{user.username}")
+        params={
+            "format": "json",
+            "action": "query",
+            "prop": "revisions",
+            "rvslots": "*",
+            "rvprop": "timestamp|user",
+            "titles": "|".join(titles),
+        },
+        result = requests.get("https://pt.wikiversity.org/w/api.php", params=params).json()
+        timestamps = []
+        api_pages = result["query"]["pages"].values()
+        for original_title in titles:
+            use_title = original_title
+            for normalized in result["query"].get("normalized", []):
+                if original_title == normalized["from"]:
+                    use_title = normalized["to"]
+            for api_page in api_pages:
+                if use_title == api_page.get("title"):
+                    timestamps.append(api_page.get("revisions", [{}])[-1].get("timestamp", None))
+                    continue
+            timestamps.append(None)
+        timestamps.insert(1, None)
+        return render_template('certificate_module_timestamps.html', user=user, timestamps=timestamps)
+    else:
+        return render_template('certificate_module_timestamps.html', user=None, timestamps=[])
 
 # Gerenciar atividades
 @app.route('/certificate/requested', methods=['GET'])
