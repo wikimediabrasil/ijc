@@ -838,6 +838,23 @@ def deny_certification(user, module_activity):
     else:
         return redirect(url_for('certificate'))
 
+# Cancela/reseta aprovação ou rejeição uma atividade
+@app.route('/reset_certification/<user>/<module_activity>', methods=['GET'])
+def reset_certification(user, module_activity):
+    username = get_username()
+    if username in app.config['COORDINATORS_USERNAMES']:
+        user_to_be_approved = Users.query.filter_by(username=user).first()
+        user_modules_activities = user_to_be_approved.can_download_certificate.split(";")
+        user_modules_activities[int(module_activity)-1] = "NP"
+        user_to_be_approved.can_download_certificate = ";".join(user_modules_activities)
+        try:
+            db.session.commit()
+            return redirect(url_for('certificate'))
+        except:
+            return 'Ocorreu um erro!'
+    else:
+        return redirect(url_for('certificate'))
+
 
 def get_revision_ids(data):
     return_list = {}
