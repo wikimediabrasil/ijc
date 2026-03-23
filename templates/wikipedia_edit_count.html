@@ -41,7 +41,7 @@
                                 <tr {% if not edit.ignored %}style="font-weight: bold;"{% endif %}>
                                     <td><a target="_blank" href="https://pt.wikipedia.org/wiki/Especial:Diff/{{ edit.revid }}">{{ edit.timestamp }}</a></td>
                                     <td>{{ edit.title }}</td>
-                                    <td>{% if edit.ignored == "namespace" %}Não é edição no Domínio Principal{% elif edit.ignored == "reverted" %}Edição revertida{% elif edit.ignored == "sizediff %"}Quantidade negativa{% else %}Contabilizada{% endif %}</td>
+                                    <td>{% if edit.ignored == "namespace" %}Não é edição no Domínio Principal{% elif edit.ignored == "reverted" %}Edição revertida{% elif edit.ignored == "sizediff" %}Quantidade negativa{% else %}Contabilizada{% endif %}</td>
                                     <td {% if not edit.ignored %}style="color: green;"{% endif %}>{{ edit.sizediff }}</td>
                                 </tr>
                             {% endfor %}
