@@ -23,6 +23,7 @@
             <div class="w3-row" style="margin-bottom: 15px">
                 <div class="w3-container">
                     <div class="w3-row" {% if total_reached %}style="color: green;"{% endif %}>
+                        <h2> {{ username }} </h2>
                         <h3> Total de caracteres: {{ total_diff }} </h3>
                         <h4> Acima de 15 mil? {% if total_reached %}<b>Sim</b>{% else %}Não{% endif %}</h4>
                     </div>
