@@ -21,6 +21,8 @@ from email.header import Header
 from email.utils import formataddr
 from email.mime.text import MIMEText
 
+USER_AGENT = "IJC (https://w.wiki/3H3G)"
+
 __dir__ = os.path.dirname(__file__)
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
@@ -703,7 +705,7 @@ def certificate_module_timestamps(user_username):
             "rvprop": "timestamp|user",
             "titles": "|".join(titles),
         }
-        result = requests.get("https://pt.wikiversity.org/w/api.php", params=params).json()
+        result = requests.get("https://pt.wikiversity.org/w/api.php", params=params, headers={"User-Agent": USER_AGENT}).json()
         timestamps = []
         api_pages = result["query"]["pages"].values()
         for original_title in titles:
@@ -855,6 +857,40 @@ def reset_certification(user, module_activity):
             return 'Ocorreu um erro!'
     else:
         return redirect(url_for('certificate'))
+
+@app.route('/wikipedia_edit_count/<user_username>', methods=['GET'])
+def wikipedia_edit_count(user_username):
+    username = get_username()
+    if username in app.config['COORDINATORS_USERNAMES']:
+        user = Users.query.filter_by(username=user_username).first()
+    else:
+        user = Users.query.filter_by(username=username).first()
+    if user:
+        username = user.username
+        params={
+            "format": "json",
+            "action": "query",
+            "list": "usercontribs",
+            "ucuser": username,
+            "uclimit": "max",
+            "ucprop": "sizediff",
+        }
+        result = requests.get("https://pt.wikipedia.org/w/api.php", params=params, headers={"User-Agent": USER_AGENT}).json()
+        edits = result["query"]["usercontribs"]
+        total_diff = 0
+        for edit in edits:
+            if edit["ns"] != 0:
+                edit["ignored"] = "namespace"
+                continue
+            if "mw-reverted" in edit["tags"]:
+                edit["ignored"] = "reverted"
+                continue
+            sizediff = edit["sizediff"]
+            if sizediff > 0:
+                total_diff += sizediff
+        return render_template("wikipedia_edit_count.html", username=username, edits=edits, total_diff=total_diff)
+    else:
+        return render_template("wikipedia_edit_count.html")
 
 
 def get_revision_ids(data):

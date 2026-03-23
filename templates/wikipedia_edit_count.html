@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block navbar %}
+    {% with lang=lang, username=username %}
+        {% include 'topnavbar.html' %}
+    {% endwith %}
+{% endblock %}
+
+{% block title %}Edições na Wikipédia - {{username}}{% endblock %}
+{% block content %}
+    <div class="w3-container" style="text-align: center; padding:0">
+        <div class="w3-container"
+             style="height:200px; overflow:hidden; padding:0; position: relative; margin-bottom: 30px">
+            <img width="100%" src="{{ url_for('static', filename='A_los_derechos_humanos.jpg') }}">
+            <div class="w3-quarter"></div>
+            <div class="w3-half" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                        font-size:150%; color:white; font-family:'Linux Libertine';
+                        background: rgba(0, 104, 163, 0.9); padding: 10px; border-radius: 5px">
+                <b>INTRODUÇÃO AO JORNALISMO CIENTÍFICO</b>
+            </div>
+        </div>
+        <div class="w3-container" style="text-align: center; padding:0">
+            <div class="w3-row" style="margin-bottom: 15px">
+                <div class="w3-container">
+                    <div class="w3-row">
+                        <div class="w3-quarter">&nbsp;</div>
+                        <div class="w3-half">
+                            <a href="{{ url_for('certificate_only_requested') }}">
+                                <span style="padding:10px; background-color: #05224e; margin:0 0 1em 0; width: 100%">Total de caracteres no domínio principal: {{total_diff}}</span>
+                            </a>
+                        </div>
+                    </div>
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Artigo editado</th>
+                            <th>Edição contabilizada?</th>
+                            <th>Caracteres</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                            {% for edit in edits %}
+                                <tr>
+                                    <td style="width:0"><a target="_blank" href="https://pt.wikipedia.org/wiki/Especial:Diff/{{ edit.revid }}">{{ edit.timestamp }}</a></td>
+                                    <td style="width:0">{{ edit.title }}</td>
+                                    <td style="width:0">{% if edit.ignored %}{{ edit.ignored }}{% else %}Contabilizada{% endif %}</td>
+                                    <td style="text-align: center">{{ edit.sizediff }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
