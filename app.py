@@ -873,7 +873,7 @@ def wikipedia_edit_count(user_username):
             "list": "usercontribs",
             "ucuser": username,
             "uclimit": "max",
-            "ucprop": "sizediff",
+            "ucprop": "ids|title|timestamp|sizediff|flags|tags",
         }
         result = requests.get("https://pt.wikipedia.org/w/api.php", params=params, headers={"User-Agent": USER_AGENT}).json()
         edits = result["query"]["usercontribs"]
