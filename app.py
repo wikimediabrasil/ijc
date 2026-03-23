@@ -886,9 +886,12 @@ def wikipedia_edit_count(user_username):
                 edit["ignored"] = "reverted"
                 continue
             sizediff = edit["sizediff"]
-            if sizediff > 0:
+            if sizediff >= 0:
                 total_diff += sizediff
-        return render_template("wikipedia_edit_count.html", username=username, edits=edits, total_diff=total_diff)
+            else:
+                edit["ignored"] = "sizediff"
+        total_reached = total_diff >= 15000
+        return render_template("wikipedia_edit_count.html", username=username, edits=edits, total_diff=total_diff, total_reached=total_reached)
     else:
         return render_template("wikipedia_edit_count.html")
 
