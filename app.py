@@ -859,7 +859,7 @@ def reset_certification(user, module_activity):
         return redirect(url_for('certificate'))
 
 @app.route('/wikipedia_edit_count', methods=['GET'])
-def wikipedia_edit_count_redirect(user_username):
+def wikipedia_edit_count_redirect():
     username = get_username()
     user = Users.query.filter_by(username=username).first()
     if user:
