@@ -874,6 +874,8 @@ def wikipedia_edit_count(user_username):
         user = Users.query.filter_by(username=user_username).first()
     else:
         user = Users.query.filter_by(username=username).first()
+        if user and username != user_username:
+            return redirect(url_for('wikipedia_edit_count', user_username=username))
     if user:
         username = user.username
         params={
