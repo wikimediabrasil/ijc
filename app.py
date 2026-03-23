@@ -21,6 +21,8 @@ from email.header import Header
 from email.utils import formataddr
 from email.mime.text import MIMEText
 
+USER_AGENT = "IJC (https://w.wiki/3H3G)"
+
 __dir__ = os.path.dirname(__file__)
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
@@ -35,7 +37,7 @@ key = app.config["ENCRYPTION_KEY"]
 
 MODULES = [
     "https://pt.wikiversity.org/wiki/Introdução_ao_Jornalismo_Científico/Metodologia_e_Filosofia_da_Ciência/Atividade/",
-    "https://outreachdashboard.wmflabs.org/courses/CEPID_NeuroMat/Introdu%C3%A7%C3%A3o_ao_Jornalismo_Cient%C3%ADfico/students/articles/",
+    "/wikipedia_edit_count/",
     "https://pt.wikiversity.org/wiki/Introdução_ao_Jornalismo_Científico/Ética_da_Ciência/Atividade/",
     "https://pt.wikiversity.org/wiki/Introdução_ao_Jornalismo_Científico/Temas_Centrais_da_Ciência_Contemporânea/Atividade/",
     "https://pt.wikiversity.org/wiki/Introdução_ao_Jornalismo_Científico/Modos_de_Organização_e_Financiamento_dos_Sistemas_de_Pesquisa,_no_Brasil_e_no_Exterior/Atividade/",
@@ -703,7 +705,7 @@ def certificate_module_timestamps(user_username):
             "rvprop": "timestamp|user",
             "titles": "|".join(titles),
         }
-        result = requests.get("https://pt.wikiversity.org/w/api.php", params=params).json()
+        result = requests.get("https://pt.wikiversity.org/w/api.php", params=params, headers={"User-Agent": USER_AGENT}).json()
         timestamps = []
         api_pages = result["query"]["pages"].values()
         for original_title in titles:
@@ -855,6 +857,54 @@ def reset_certification(user, module_activity):
             return 'Ocorreu um erro!'
     else:
         return redirect(url_for('certificate'))
+
+@app.route('/wikipedia_edit_count', methods=['GET'])
+def wikipedia_edit_count_redirect():
+    username = get_username()
+    user = Users.query.filter_by(username=username).first()
+    if user:
+        return redirect(url_for('wikipedia_edit_count', user_username=user.username))
+    else:
+        return redirect(url_for('home'))
+
+@app.route('/wikipedia_edit_count/<user_username>', methods=['GET'])
+def wikipedia_edit_count(user_username):
+    username = get_username()
+    if username in app.config['COORDINATORS_USERNAMES']:
+        user = Users.query.filter_by(username=user_username).first()
+    else:
+        user = Users.query.filter_by(username=username).first()
+        if user and username != user_username:
+            return redirect(url_for('wikipedia_edit_count', user_username=username))
+    if user:
+        username = user.username
+        params={
+            "format": "json",
+            "action": "query",
+            "list": "usercontribs",
+            "ucuser": username,
+            "uclimit": "max",
+            "ucprop": "ids|title|timestamp|sizediff|flags|tags",
+        }
+        result = requests.get("https://pt.wikipedia.org/w/api.php", params=params, headers={"User-Agent": USER_AGENT}).json()
+        edits = result["query"]["usercontribs"]
+        total_diff = 0
+        for edit in edits:
+            if edit["ns"] != 0:
+                edit["ignored"] = "namespace"
+                continue
+            if "mw-reverted" in edit["tags"]:
+                edit["ignored"] = "reverted"
+                continue
+            sizediff = edit["sizediff"]
+            if sizediff >= 0:
+                total_diff += sizediff
+            else:
+                edit["ignored"] = "sizediff"
+        total_reached = total_diff >= 15000
+        return render_template("wikipedia_edit_count.html", user_username=username, edits=edits, total_diff=total_diff, total_reached=total_reached)
+    else:
+        return render_template("wikipedia_edit_count.html")
 
 
 def get_revision_ids(data):
