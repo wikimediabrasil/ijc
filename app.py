@@ -262,7 +262,8 @@ def update_subscription(user_username):
     """
 
     username = get_username()
-    if username in app.config['COORDINATORS_USERNAMES']:
+    allowed_usernames = list(app.config["COORDINATORS_USERNAMES"]) + [user_username]
+    if username in allowed_usernames:
         user_to_update = Users.query.filter_by(username=user_username).first()
 
         if request.method == 'POST':
