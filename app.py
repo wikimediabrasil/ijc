@@ -904,7 +904,7 @@ def wikipedia_edit_count(user_username):
         total_reached = total_diff >= 15000
         return render_template("wikipedia_edit_count.html", user_username=username, edits=edits, total_diff=total_diff, total_reached=total_reached)
     else:
-        return render_template("wikipedia_edit_count.html")
+        return redirect(url_for('home'))
 
 
 def get_revision_ids(data):
