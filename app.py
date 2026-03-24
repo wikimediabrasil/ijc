@@ -870,6 +870,7 @@ def wikipedia_edit_count_redirect():
 @app.route('/wikipedia_edit_count/<user_username>', methods=['GET'])
 def wikipedia_edit_count(user_username):
     username = get_username()
+    user_username = user_username.replace("_", " ")
     if username in app.config['COORDINATORS_USERNAMES']:
         user = Users.query.filter_by(username=user_username).first()
     else:
