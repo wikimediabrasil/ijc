@@ -877,12 +877,12 @@ def wikipedia_edit_count(user_username):
         if user and username != user_username:
             return redirect(url_for('wikipedia_edit_count', user_username=username))
     if user:
-        username = user.username
+        user_username = user.username
         params={
             "format": "json",
             "action": "query",
             "list": "usercontribs",
-            "ucuser": username,
+            "ucuser": user_username,
             "uclimit": "max",
             "ucprop": "ids|title|timestamp|sizediff|flags|tags",
         }
@@ -902,7 +902,7 @@ def wikipedia_edit_count(user_username):
             else:
                 edit["ignored"] = "sizediff"
         total_reached = total_diff >= 15000
-        return render_template("wikipedia_edit_count.html", user_username=username, edits=edits, total_diff=total_diff, total_reached=total_reached)
+        return render_template("wikipedia_edit_count.html", username=username, user_username=user_username, edits=edits, total_diff=total_diff, total_reached=total_reached)
     else:
         return redirect(url_for('home'))
 
