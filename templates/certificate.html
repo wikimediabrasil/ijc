@@ -50,7 +50,7 @@
                         </thead>
                         <tbody>
                             {% for user in users %}
-                                <tr>
+                                <tr id="tr-user-{{ user.id }}">
                                     <td style="width:0"><a target="_blank" href="https://pt.wikiversity.org/wiki/User_talk:{{ user.username }}">{{ user.username }}</a></td>
                                     <td style="width:0">{{ user.full_name }}</td>
                                     {% if coordinator %}
@@ -60,7 +60,7 @@
                                     {% endif %}
                                     {% if coordinator %}
                                         {% for module_activity in user.can_download_certificate.split(";") %}
-                                            <td style="text-align: center; background-color: {% if module_activity == "F" %}#ffc0c0{% elif module_activity == "NP" %}#b0b0b0{% else %}#90ff90{% endif %}">
+                                            <td style="text-align: center; background-color: {% if module_activity == "F" %}#ffc0c0{% elif module_activity == "NP" %}#b0b0b0{% else %}#90ff90{% endif %}" id="tr-user-{{ user.id }}-module-{{ loop.index}}">
                                                 <div class="w3-content" style="margin: 0; padding: 0">
                                                     <div class="w3-row" style="margin: 0; padding: 0">
                                                         <a target="_blank"
@@ -70,12 +70,9 @@
                                                     </div>
                                                     {% if user.solicited_certificate %}
                                                         <div class="w3-row" style="margin: 0; padding: 0">
-                                                            <div class="w3-half">
-                                                                <a href="{{ url_for('approve_certification', user=user.username, module_activity=loop.index) }}"><button type="button" value="Sim" style="padding:10px; background-color: #009000; margin:0; width:100%">✔</button></a>
-                                                            </div>
-                                                            <div class="w3-half">
-                                                                <a href="{{ url_for('deny_certification', user=user.username, module_activity=loop.index) }}"><button type="button" value="Não" style="padding:10px; background-color: #c90000; margin:0; width:100%">✘</button></a>
-                                                            </div>
+                                                            {% if module_activity != "T" %}<div class="w3-half"><a href="{{ url_for('approve_certification', user=user.username, module_activity=loop.index) }}"><button type="button" value="Sim" style="padding:10px; background-color: #009000; margin:0; width:100%">✔</button></a></div>{% endif %}
+                                                            {% if module_activity != "F" %}<div class="w3-half"><a href="{{ url_for('deny_certification', user=user.username, module_activity=loop.index) }}"><button type="button" value="Não" style="padding:10px; background-color: #c90000; margin:0; width:100%">✘</button></a></div>{% endif %}
+                                                            {% if module_activity != "NP" or not module_activity %}<div class="w3-half"><a href="{{ url_for('reset_certification', user=user.username, module_activity=loop.index) }}"><button type="button" value="Cancelar" style="padding:10px; background-color: #707070; margin:0; width:100%">🛇</button></a></div>{% endif %}
                                                         </div>
                                                     {% endif %}
                                                     <div id="timestamps-{{user.id}}-module-{{loop.index}}"></div>
