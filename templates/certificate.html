@@ -60,7 +60,9 @@
                                     {% endif %}
                                     {% if coordinator %}
                                         {% for module_activity in user.can_download_certificate.split(";") %}
+                                        {% with module_index=loop.index %}
                                             {% include 'certificate_module_cell_coordinator.html' module_index=loop.index %}
+                                        {% endwith %}
                                         {% endfor %}
                                     {% else %}
                                         {% for module_activity in user.can_download_certificate.split(";") %}
