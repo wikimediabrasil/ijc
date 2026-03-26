@@ -9,8 +9,8 @@
         {% if user.solicited_certificate %}
             <div class="w3-row" style="margin: 0; padding: 0">
                 {% if module_activity != "T" %}<div class="w3-half"><button hx-get="{{ url_for('approve_certification', user=user.username, module_activity=module_index) }}" hx-swap="outerHTML" hx-target="#tr-user-{{ user.id }}-module-{{ module_index }}" type="button" style="padding:5px; background-color: #009000; margin:0; width: 100%;" value="Sim">✔</button></div>{% endif %}
-                {% if module_activity != "F" %}<div class="w3-half"><a href="{{ url_for('deny_certification', user=user.username, module_activity=module_index) }}"><button type="button" value="Não" style="padding:10px; background-color: #c90000; margin:0; width:100%">✘</button></a></div>{% endif %}
-                {% if module_activity != "NP" or not module_activity %}<div class="w3-half"><a href="{{ url_for('reset_certification', user=user.username, module_activity=module_index) }}"><button type="button" value="Cancelar" style="padding:10px; background-color: #707070; margin:0; width:100%">🛇</button></a></div>{% endif %}
+                {% if module_activity != "F" %}<div class="w3-half"><button hx-get="{{ url_for('deny_certification', user=user.username, module_activity=module_index) }}" hx-swap="outerHTML" hx-target="#tr-user-{{ user.id }}-module-{{ module_index }}" type="button" style="padding:5px; background-color: #c90000; margin:0; width: 100%;" value="Não">✘</button></div>{% endif %}
+                {% if module_activity != "NP" %}<div class="w3-half"><button hx-get="{{ url_for('reset_certification', user=user.username, module_activity=module_index) }}" hx-swap="outerHTML" hx-target="#tr-user-{{ user.id }}-module-{{ module_index }}" type="button" style="padding:5px; background-color: #707070; margin:0; width: 100%;" value="Cancelar">🛇</button></div>{% endif %}
             </div>
         {% endif %}
         <div id="timestamps-{{user.id}}-module-{{module_index}}"></div>
