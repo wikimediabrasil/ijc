@@ -819,6 +819,7 @@ def approve_certification(user, module_activity):
             return 'Ocorreu um erro!'
         if request.headers.get("HX-Request"):
             return render_template('certificate_module_cell_coordinator.html',
+                                   aulas=MODULES,
                                    user=user_to_be_approved,
                                    module_index=int(module_activity),
                                    module_activity="T")
