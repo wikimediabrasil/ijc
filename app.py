@@ -815,6 +815,8 @@ def approve_certification(user, module_activity):
         user_to_be_approved.can_download_certificate = ";".join(user_modules_activities)
         try:
             db.session.commit()
+        except:
+            return 'Ocorreu um erro!'
             if request.headers.get("HX-Request"):
                 return render_template('certificate_module_cell_coordinator.html',
                                        user=user_to_be_approved,
@@ -822,8 +824,6 @@ def approve_certification(user, module_activity):
                                        module_activity="T")
             else:
                 return redirect(url_for('certificate'))
-        except:
-            return 'Ocorreu um erro!'
     else:
         return redirect(url_for('certificate'))
 
