@@ -776,7 +776,11 @@ def deny_solicitation_for_certificate(user_username):
             user_denied.solicited_certificate = False
             try:
                 db.session.commit()
-                return redirect(url_for('certificate'))
+                return render_template('certificate.html',
+                                       aulas=MODULES,
+                                       username=username,
+                                       users=[user_denied],
+                                       coordinator=True)
             except:
                 return 'Ocorreu um erro!'
     else:

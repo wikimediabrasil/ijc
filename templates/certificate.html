@@ -97,11 +97,9 @@
                                     {% else %}
                                         {% if user.solicited_certificate %}
                                             <td style="text-align: center">
-                                                <a href="{{ url_for('deny_solicitation_for_certificate', user_username=user.username) }}">
-                                                    <button type="button" value="Não" style="padding:10px; background-color: #ff9000; color:black; width: 100%">
-                                                        Arquivar solicitação
-                                                    </button>
-                                                </a>
+                                                <button type="button" hx-get="{{ url_for('deny_solicitation_for_certificate', user_username=user.username) }}" hx-swap="outerHTML" hx-target="#tr-user-{{ user.id }}" hx-select="#tr-user-{{ user.id }}" value="Não" style="padding:10px; background-color: #ff9000; color:black; width: 100%">
+                                                    Arquivar solicitação
+                                                </button>
                                             </td>
                                         {% else %}
                                             <td style="text-align: center">
