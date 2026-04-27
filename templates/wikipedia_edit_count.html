@@ -22,6 +22,12 @@
         <div class="w3-container" style="text-align: center; padding:0">
             <div class="w3-row" style="margin-bottom: 15px">
                 <div class="w3-container">
+                    {% if not_found %}
+                    <div class="w3-row" {% if total_reached %}style="color: green;"{% endif %}>
+                        <h2> {{ user_username }} </h2>
+                        <h3> Usuário não encontrado. </h3>
+                    </div>
+                    {% else %}
                     <div class="w3-row" {% if total_reached %}style="color: green;"{% endif %}>
                         <h2> {{ user_username }} </h2>
                         <h3> Total de caracteres: {{ total_diff }} </h3>
@@ -48,6 +54,7 @@
                             {% endfor %}
                         </tbody>
                     </table>
+                    {% endif %}
                 </div>
             </div>
         </div>
