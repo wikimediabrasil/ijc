@@ -1,7 +1,7 @@
 <td style="text-align: center; background-color: {% if module_activity == "F" %}#ffc0c0{% elif module_activity == "NP" %}#b0b0b0{% else %}#90ff90{% endif %}" id="tr-user-{{ user.id }}-module-{{ module_index }}">
     <div class="w3-content" style="margin: 0; padding: 0">
         <div class="w3-row" style="margin: 0; padding: 0">
-            <a target="_blank"
+            <a {% if aulas[module_index - 1].startswith('http') %} target="_blank" {% endif %}
                href="{{ aulas[module_index - 1] }}{{ user.username }}">
                 <button type="button" style="padding:10px; background-color: #0069a1; margin:0; width: 100%">Módulo {{ module_index }}</button>
             </a>
