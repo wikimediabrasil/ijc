@@ -886,22 +886,13 @@ def reset_certification(user, module_activity):
 @app.route('/wikipedia_edit_count', methods=['GET'])
 def wikipedia_edit_count_redirect():
     username = get_username()
-    user = Users.query.filter_by(username=username).first()
-    if user:
-        return redirect(url_for('wikipedia_edit_count', user_username=user.username))
-    else:
-        return redirect(url_for('home'))
+    return redirect(url_for('wikipedia_edit_count', user_username=username))
 
 @app.route('/wikipedia_edit_count/<user_username>', methods=['GET'])
 def wikipedia_edit_count(user_username):
     username = get_username()
     user_username = user_username.replace("_", " ").strip()
-    if username in app.config['COORDINATORS_USERNAMES']:
-        user = Users.query.filter_by(username=user_username).first()
-    else:
-        user = Users.query.filter_by(username=username).first()
-        if user and username != user_username:
-            return redirect(url_for('wikipedia_edit_count', user_username=username))
+    user = Users.query.filter_by(username=user_username).first()
     if user:
         user_username = user.username
         params={
