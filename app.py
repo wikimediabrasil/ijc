@@ -904,11 +904,13 @@ def wikipedia_edit_count(user_username):
             return redirect(url_for('wikipedia_edit_count', user_username=username))
     if user:
         user_username = user.username
+        created = user.date_created
         params={
             "format": "json",
             "action": "query",
             "list": "usercontribs",
             "ucuser": user_username,
+            "ucend": created.isoformat(),
             "uclimit": "max",
             "ucprop": "ids|title|timestamp|sizediff|flags|tags",
         }
@@ -928,7 +930,7 @@ def wikipedia_edit_count(user_username):
             else:
                 edit["ignored"] = "sizediff"
         total_reached = total_diff >= 15000
-        return render_template("wikipedia_edit_count.html", username=username, user_username=user_username, edits=edits, total_diff=total_diff, total_reached=total_reached)
+        return render_template("wikipedia_edit_count.html", username=username, user_username=user_username, edits=edits, total_diff=total_diff, total_reached=total_reached, user_created=created)
     else:
         return redirect(url_for('home'))
 
