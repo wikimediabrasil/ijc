@@ -930,7 +930,8 @@ def wikipedia_edit_count(user_username):
             else:
                 edit["ignored"] = "sizediff"
         total_reached = total_diff >= 15000
-        return render_template("wikipedia_edit_count.html", username=username, user_username=user_username, edits=edits, total_diff=total_diff, total_reached=total_reached, user_created=created)
+        start_date = created.date()
+        return render_template("wikipedia_edit_count.html", username=username, user_username=user_username, edits=edits, total_diff=total_diff, total_reached=total_reached, start_date=start_date)
     else:
         return redirect(url_for('home'))
 
