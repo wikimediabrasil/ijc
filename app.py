@@ -896,12 +896,7 @@ def wikipedia_edit_count_redirect():
 def wikipedia_edit_count(user_username):
     username = get_username()
     user_username = user_username.replace("_", " ")
-    if username in app.config['COORDINATORS_USERNAMES']:
-        user = Users.query.filter_by(username=user_username).first()
-    else:
-        user = Users.query.filter_by(username=username).first()
-        if user and username != user_username:
-            return redirect(url_for('wikipedia_edit_count', user_username=username))
+    user = Users.query.filter_by(username=user_username).first()
     if user:
         user_username = user.username
         created = user.date_created
