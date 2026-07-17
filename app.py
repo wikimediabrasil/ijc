@@ -377,24 +377,13 @@ def subscription_letter():
         #######################################################################################################
         # Footer
         #######################################################################################################
-        pdf.cell(w=0, h=13, ln=1)                   # Give some space for the signatures
-        # Fernando da Paixão signature
-        pdf.image(os.path.join(app.static_folder, 'fpaixao.png'), x=37.5, y=234, w=35, h=16)
-        pdf.set_y(240)
-        pdf.multi_cell(w=90,
-                       h=6,
-                       txt="_____________________________________\n"
-                           "FERNANDO JORGE DA\nPAIXÃO FILHO\nCoordenador da equipe de\ndifusão do CEPID NeuroMat",
-                       border=0,
-                       align='C')
-
         # João Alexandre Peschanski signature
-        pdf.image(os.path.join(app.static_folder, 'jap.png'), x=137.5, y=236, w=35, h=16)
-        pdf.set_xy(110, 240)
+        pdf.image(os.path.join(app.static_folder, 'jap.png'), x=87.5, y=234, w=35, h=16)
+        pdf.set_xy(60, 240)
         pdf.multi_cell(w=90,
                        h=6,
                        txt="_____________________________________\n"
-                           "JOÃO ALEXANDRE\nPESCHANSKI\nPesquisador associado\ndo CEPID NeuroMat",
+                           "JOÃO ALEXANDRE\nPESCHANSKI\nDiretor Executivo\nda Wikimedia Brasil",
                        border=0,
                        align='C')
         pdf.cell(w=0, h=5, ln=1)
@@ -534,22 +523,22 @@ def generate_certificate():
             pdf.cell(w=0, h=8, ln=1)  # New line
 
             #######################################################################################################
-            # Logo NeuroMat
+            # Logo NeuroMat e WMB
             #######################################################################################################
             pdf.set_font('Merriweather', '', 12.5)
             pdf.set_x(50)
             y_production = pdf.get_y()
             pdf.cell(w=20, h=10, border=0, ln=0, align='L', txt='Produção:')
             y_logos = pdf.get_y()
-            pdf.image(os.path.join(app.static_folder, 'neuromat.png'), x=78, y=y_production+0.6, h=8.5)
+            pdf.image(os.path.join(app.static_folder, 'neuromat.png'), x=78, y=y_production + 0.6, h=8.5)
+            pdf.image(os.path.join(app.static_folder, 'wmb.png'), x=115, y=y_production - 1.1, h=13)
 
             #######################################################################################################
-            # Logo FAPESP and WMB
+            # Logo FAPESP
             #######################################################################################################
             pdf.set_xy(155, y_production)
             pdf.cell(w=20, h=10, border=0, ln=1, align='L', txt='Apoio:')
-            pdf.image(os.path.join(app.static_folder, 'fapesp.png'), x=175, y=y_production+1.1, h=7)
-            pdf.image(os.path.join(app.static_folder, 'wmb.png'), x=215, y=y_production-1.1, h=13)
+            pdf.image(os.path.join(app.static_folder, 'fapesp.png'), x=175, y=y_production + 1.1, h=7)
 
             pdf.cell(w=0, h=5, ln=1)  # New line
 
