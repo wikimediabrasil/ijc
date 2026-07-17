@@ -1,12 +1,10 @@
 import io
 import os
-import csv
 import yaml
 import math
 import locale
 import hashlib
 import requests
-import cryptography
 from flask import Flask, render_template, request, redirect, url_for, session, make_response, Response, g
 from fpdf import FPDF
 from flask_sqlalchemy import SQLAlchemy
@@ -14,7 +12,7 @@ from datetime import datetime
 from requests_oauthlib import OAuth1Session
 from oauth_wiki import get_username
 from sqlalchemy_utils import StringEncryptedType
-from PyPDF2 import PdfFileReader, PdfFileWriter
+import PyPDF2
 
 from email.message import EmailMessage
 import ssl
@@ -22,6 +20,8 @@ import smtplib
 from email.header import Header
 from email.utils import formataddr
 from email.mime.text import MIMEText
+
+USER_AGENT = "IJC (https://w.wiki/3H3G)"
 
 __dir__ = os.path.dirname(__file__)
 app = Flask(__name__)
@@ -35,6 +35,14 @@ db = SQLAlchemy(app)
 
 key = app.config["ENCRYPTION_KEY"]
 
+MODULES = [
+    "https://pt.wikiversity.org/wiki/Introdução_ao_Jornalismo_Científico/Metodologia_e_Filosofia_da_Ciência/Atividade/",
+    "/wikipedia_edit_count/",
+    "https://pt.wikiversity.org/wiki/Introdução_ao_Jornalismo_Científico/Ética_da_Ciência/Atividade/",
+    "https://pt.wikiversity.org/wiki/Introdução_ao_Jornalismo_Científico/Temas_Centrais_da_Ciência_Contemporânea/Atividade/",
+    "https://pt.wikiversity.org/wiki/Introdução_ao_Jornalismo_Científico/Modos_de_Organização_e_Financiamento_dos_Sistemas_de_Pesquisa,_no_Brasil_e_no_Exterior/Atividade/",
+    "https://pt.wikiversity.org/wiki/Introdução_ao_Jornalismo_Científico/Mídias,_Linguagens_e_Prática_do_Jornalismo_Científico/Atividade/",
+]
 
 # Create database (db) model
 class Users(db.Model):
@@ -256,7 +264,8 @@ def update_subscription(user_username):
     """
 
     username = get_username()
-    if username in app.config['COORDINATORS_USERNAMES']:
+    allowed_usernames = list(app.config["COORDINATORS_USERNAMES"]) + [user_username]
+    if username in allowed_usernames:
         user_to_update = Users.query.filter_by(username=user_username).first()
 
         if request.method == 'POST':
@@ -638,8 +647,9 @@ def certificate():
 
     if request.method == 'GET':
         if username in app.config['COORDINATORS_USERNAMES']:
-            users = Users.query.all()
+            users = Users.query.order_by(Users.date_created.desc())
             return render_template('certificate.html',
+                                   aulas=MODULES,
                                    username=username,
                                    users=users,
                                    coordinator=True)
@@ -651,12 +661,58 @@ def certificate():
             else:
                 return redirect(url_for('subscription'))
             return render_template('certificate.html',
+                                   aulas=MODULES,
                                    username=username,
                                    users=users,
                                    can_download_certificate=can_download_certificate)
     else:
         return redirect(url_for('home'))
 
+@app.route('/certificate/module_timestamps/<user_username>', methods=['GET'])
+def certificate_module_timestamps(user_username):
+    username = get_username()
+
+    if username in app.config['COORDINATORS_USERNAMES']:
+        users = Users.query.filter_by(username=user_username)
+    else:
+        users = Users.query.filter_by(username=username)
+
+    if users.first():
+        INDEX_TO_SKIP = 1
+        user = users.first()
+        titles = []
+        modules_to_check = list(MODULES)
+        modules_to_check.pop(INDEX_TO_SKIP) # remove outreach dashboard
+        for m in modules_to_check:
+            title_wiki = m.split("https://pt.wikiversity.org/wiki/")[-1]
+            titles.append(f"{title_wiki}{user.username}")
+        params={
+            "format": "json",
+            "action": "query",
+            "prop": "revisions",
+            "rvslots": "*",
+            "rvprop": "timestamp|user",
+            "titles": "|".join(titles),
+        }
+        result = requests.get("https://pt.wikiversity.org/w/api.php", params=params, headers={"User-Agent": USER_AGENT}).json()
+        timestamps = []
+        api_pages = result["query"]["pages"].values()
+        for original_title in titles:
+            use_title = original_title
+            for normalized in result["query"].get("normalized", []):
+                if original_title == normalized["from"]:
+                    use_title = normalized["to"]
+            found = False
+            for api_page in api_pages:
+                if use_title == api_page.get("title"):
+                    timestamps.append(api_page.get("revisions", [{}])[-1].get("timestamp", None))
+                    found = True
+            if not found:
+                timestamps.append(None)
+        timestamps.insert(INDEX_TO_SKIP, None)
+        return render_template('certificate_module_timestamps.html', user=user, timestamps=timestamps)
+    else:
+        return render_template('certificate_module_timestamps.html', user=None, timestamps=[])
 
 # Gerenciar atividades
 @app.route('/certificate/requested', methods=['GET'])
@@ -665,8 +721,9 @@ def certificate_only_requested():
 
     if username in app.config['COORDINATORS_USERNAMES']:
         if request.method == 'GET':
-            users = Users.query.filter_by(solicited_certificate=True)
+            users = Users.query.filter_by(solicited_certificate=True).order_by(Users.date_created.desc())
             return render_template('certificate.html',
+                                   aulas=MODULES,
                                    username=username,
                                    users=users,
                                    coordinator=True)
@@ -708,7 +765,11 @@ def deny_solicitation_for_certificate(user_username):
             user_denied.solicited_certificate = False
             try:
                 db.session.commit()
-                return redirect(url_for('certificate'))
+                return render_template('certificate.html',
+                                       aulas=MODULES,
+                                       username=username,
+                                       users=[user_denied],
+                                       coordinator=True)
             except:
                 return 'Ocorreu um erro!'
     else:
@@ -747,9 +808,16 @@ def approve_certification(user, module_activity):
         user_to_be_approved.can_download_certificate = ";".join(user_modules_activities)
         try:
             db.session.commit()
-            return redirect(url_for('certificate'))
         except:
             return 'Ocorreu um erro!'
+        if request.headers.get("HX-Request"):
+            return render_template('certificate_module_cell_coordinator.html',
+                                   aulas=MODULES,
+                                   user=user_to_be_approved,
+                                   module_index=int(module_activity),
+                                   module_activity="T")
+        else:
+            return redirect(url_for('certificate_only_requested'))
     else:
         return redirect(url_for('certificate'))
 
@@ -767,11 +835,89 @@ def deny_certification(user, module_activity):
         user_to_be_approved.can_download_certificate = ";".join(user_modules_activities)
         try:
             db.session.commit()
-            return redirect(url_for('certificate'))
         except:
             return 'Ocorreu um erro!'
+        if request.headers.get("HX-Request"):
+            return render_template('certificate_module_cell_coordinator.html',
+                                   aulas=MODULES,
+                                   user=user_to_be_approved,
+                                   module_index=int(module_activity),
+                                   module_activity="F")
+        else:
+            return redirect(url_for('certificate_only_requested'))
     else:
         return redirect(url_for('certificate'))
+
+# Cancela/reseta aprovação ou rejeição uma atividade
+@app.route('/reset_certification/<user>/<module_activity>', methods=['GET'])
+def reset_certification(user, module_activity):
+    username = get_username()
+    if username in app.config['COORDINATORS_USERNAMES']:
+        user_to_be_approved = Users.query.filter_by(username=user).first()
+        user_modules_activities = user_to_be_approved.can_download_certificate.split(";")
+        user_modules_activities[int(module_activity)-1] = "NP"
+        user_to_be_approved.can_download_certificate = ";".join(user_modules_activities)
+        try:
+            db.session.commit()
+        except:
+            return 'Ocorreu um erro!'
+        if request.headers.get("HX-Request"):
+            return render_template('certificate_module_cell_coordinator.html',
+                                   aulas=MODULES,
+                                   user=user_to_be_approved,
+                                   module_index=int(module_activity),
+                                   module_activity="NP")
+        else:
+            return redirect(url_for('certificate_only_requested'))
+    else:
+        return redirect(url_for('certificate'))
+
+@app.route('/wikipedia_edit_count', methods=['GET'])
+def wikipedia_edit_count_redirect():
+    username = get_username()
+    user = Users.query.filter_by(username=username).first()
+    if user:
+        return redirect(url_for('wikipedia_edit_count', user_username=user.username))
+    else:
+        return redirect(url_for('home'))
+
+@app.route('/wikipedia_edit_count/<user_username>', methods=['GET'])
+def wikipedia_edit_count(user_username):
+    username = get_username()
+    user_username = user_username.replace("_", " ")
+    user = Users.query.filter_by(username=user_username).first()
+    if user:
+        user_username = user.username
+        created = user.date_created
+        params={
+            "format": "json",
+            "action": "query",
+            "list": "usercontribs",
+            "ucuser": user_username,
+            "ucend": created.isoformat(),
+            "uclimit": "max",
+            "ucprop": "ids|title|timestamp|sizediff|flags|tags",
+        }
+        result = requests.get("https://pt.wikipedia.org/w/api.php", params=params, headers={"User-Agent": USER_AGENT}).json()
+        edits = result["query"]["usercontribs"]
+        total_diff = 0
+        for edit in edits:
+            if edit["ns"] != 0:
+                edit["ignored"] = "namespace"
+                continue
+            if "mw-reverted" in edit["tags"]:
+                edit["ignored"] = "reverted"
+                continue
+            sizediff = edit["sizediff"]
+            if sizediff >= 0:
+                total_diff += sizediff
+            else:
+                edit["ignored"] = "sizediff"
+        total_reached = total_diff >= 15000
+        start_date = created.date()
+        return render_template("wikipedia_edit_count.html", username=username, user_username=user_username, edits=edits, total_diff=total_diff, total_reached=total_reached, start_date=start_date)
+    else:
+        return redirect(url_for('home'))
 
 
 def get_revision_ids(data):

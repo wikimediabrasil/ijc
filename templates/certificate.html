@@ -37,6 +37,9 @@
                         <tr>
                             <th>Nome de usuário(a)</th>
                             <th>Nome completo</th>
+                            {% if coordinator %}
+                            <th>Inscrição<br><small>na plataforma</small></th>
+                            {% endif %}
                             <th colspan="6">Atividades</th>
                             {% if not coordinator %}
                                 <th>Emitir certificado</th>
@@ -47,37 +50,19 @@
                         </thead>
                         <tbody>
                             {% for user in users %}
-                                <tr>
+                                <tr id="tr-user-{{ user.id }}">
                                     <td style="width:0"><a target="_blank" href="https://pt.wikiversity.org/wiki/User_talk:{{ user.username }}">{{ user.username }}</a></td>
                                     <td style="width:0">{{ user.full_name }}</td>
-                                    {% set aulas = ["https://pt.wikiversity.org/wiki/Introdução_ao_Jornalismo_Científico/Metodologia_e_Filosofia_da_Ciência/Atividade/",
-                                    "https://outreachdashboard.wmflabs.org/courses/CEPID_NeuroMat/Introdu%C3%A7%C3%A3o_ao_Jornalismo_Cient%C3%ADfico/students/articles/",
-                                    "https://pt.wikiversity.org/wiki/Introdução_ao_Jornalismo_Científico/Ética_da_Ciência/Atividade/",
-                                    "https://pt.wikiversity.org/wiki/Introdução_ao_Jornalismo_Científico/Temas_Centrais_da_Ciência_Contemporânea/Atividade/",
-                                    "https://pt.wikiversity.org/wiki/Introdução_ao_Jornalismo_Científico/Modos_de_Organização_e_Financiamento_dos_Sistemas_de_Pesquisa,_no_Brasil_e_no_Exterior/Atividade/",
-                                    "https://pt.wikiversity.org/wiki/Introdução_ao_Jornalismo_Científico/Mídias,_Linguagens_e_Prática_do_Jornalismo_Científico/Atividade/"] %}
+                                    {% if coordinator %}
+                                    <td style="width:0">{{ user.date_created.date() }}
+                                    <button hx-get="/certificate/module_timestamps/{{user.username}}" hx-swap="outerHTML" type="button" style="padding:5px; background-color: #0069a1; margin:0; width: 100%; font-size: smaller">Timestamps</button>
+                                    </td>
+                                    {% endif %}
                                     {% if coordinator %}
                                         {% for module_activity in user.can_download_certificate.split(";") %}
-                                            <td style="text-align: center; background-color: {% if module_activity == "F" %}#ffc0c0{% elif module_activity == "NP" %}#b0b0b0{% else %}#90ff90{% endif %}">
-                                                <div class="w3-content" style="margin: 0; padding: 0">
-                                                    <div class="w3-row" style="margin: 0; padding: 0">
-                                                        <a target="_blank"
-                                                           href="{{ aulas[loop.index - 1] }}{{ user.username }}">
-                                                            <button type="button" style="padding:10px; background-color: #0069a1; margin:0; width: 100%">Módulo {{ loop.index }}</button>
-                                                        </a>
-                                                    </div>
-                                                    {% if user.solicited_certificate %}
-                                                        <div class="w3-row" style="margin: 0; padding: 0">
-                                                            <div class="w3-half">
-                                                                <a href="{{ url_for('approve_certification', user=user.username, module_activity=loop.index) }}"><button type="button" value="Sim" style="padding:10px; background-color: #009000; margin:0; width:100%">✔</button></a>
-                                                            </div>
-                                                            <div class="w3-half">
-                                                                <a href="{{ url_for('deny_certification', user=user.username, module_activity=loop.index) }}"><button type="button" value="Não" style="padding:10px; background-color: #c90000; margin:0; width:100%">✘</button></a>
-                                                            </div>
-                                                        </div>
-                                                    {% endif %}
-                                                </div>
-                                            </td>
+                                        {% with module_index=loop.index %}
+                                            {% include 'certificate_module_cell_coordinator.html' %}
+                                        {% endwith %}
                                         {% endfor %}
                                     {% else %}
                                         {% for module_activity in user.can_download_certificate.split(";") %}
@@ -112,11 +97,9 @@
                                     {% else %}
                                         {% if user.solicited_certificate %}
                                             <td style="text-align: center">
-                                                <a href="{{ url_for('deny_solicitation_for_certificate', user_username=user.username) }}">
-                                                    <button type="button" value="Não" style="padding:10px; background-color: #ff9000; color:black; width: 100%">
-                                                        Arquivar solicitação
-                                                    </button>
-                                                </a>
+                                                <button type="button" hx-get="{{ url_for('deny_solicitation_for_certificate', user_username=user.username) }}" hx-swap="outerHTML" hx-target="#tr-user-{{ user.id }}" hx-select="#tr-user-{{ user.id }}" value="Não" style="padding:10px; background-color: #ff9000; color:black; width: 100%">
+                                                    Arquivar solicitação
+                                                </button>
                                             </td>
                                         {% else %}
                                             <td style="text-align: center">
